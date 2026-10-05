@@ -1,0 +1,123 @@
+<div class="max-w-3xl mx-auto px-6 py-8">
+  @if (loading()) {
+  <div class="text-center py-12">
+    <p class="text-gray-500">Cargando cita...</p>
+  </div>
+  } @else if (error()) {
+  <div class="text-center py-12">
+    <p class="text-red-600 mb-4">No se pudo cargar la cita.</p>
+    <a routerLink="/ciudadano/mis-citas" class="text-brand hover:underline">Volver a mis citas</a>
+  </div>
+  } @else if (cita(); as c) {
+  <!-- Cabecera -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <a routerLink="/ciudadano/mis-citas" class="text-sm text-brand hover:underline mb-2 inline-block">
+        ← Volver a mis citas
+      </a>
+      <h1 class="text-2xl font-bold text-gray-900">Detalle de cita</h1>
+    </div>
+    <span class="px-3 py-1 rounded-full text-xs font-medium" [class]="badgeClass(c.estado)">
+      {{ estadoLabel(c.estado) }}
+    </span>
+  </div>
+
+  <!-- Info principal -->
+  <div class="bg-white rounded-lg border border-gray-200 p-6">
+    <div class="flex flex-col gap-3 text-sm">
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-500">Fecha</span>
+        <span class="font-medium text-gray-900">{{ c.fecha | date:'dd/MM/yyyy' }}</span>
+      </div>
+
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-500">Hora</span>
+        <span class="font-medium text-gray-900">{{ c.hora_inicio | slice:0:5 }} - {{ c.hora_fin | slice:0:5 }}</span>
+      </div>
+
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-500">Organización</span>
+        <span class="font-medium text-gray-900">{{ c.tenant.nombre }}</span>
+      </div>
+
+      @if (c.empleado) {
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-500">Atendido por</span>
+        <span class="font-medium text-gray-900">{{ c.empleado.nombre }} {{ c.empleado.apellidos }}</span>
+      </div>
+      }
+
+      @if (c.empleado?.mesa) {
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-500">Mesa</span>
+        <span class="font-medium text-gray-900">Mesa {{ c.empleado.mesa?.numero }}</span>
+      </div>
+      }
+
+      @if (c.empleado?.mesa?.sala) {
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-500">Sala</span>
+        <span class="font-medium text-gray-900">{{ c.empleado.mesa?.sala?.nombre }}</span>
+      </div>
+      }
+
+      @if (c.observaciones) {
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-500">Observaciones</span>
+        <span class="font-medium text-gray-900">{{ c.observaciones }}</span>
+      </div>
+      }
+    </div>
+  </div>
+
+  <!-- Trámite -->
+  @if (c.tramite) {
+  <div class="mt-6 bg-white rounded-lg border border-gray-200 p-6">
+    <h2 class="font-semibold text-gray-900 mb-3">Trámite asociado</h2>
+    <div class="flex flex-col gap-3 text-sm">
+      @if (c.tramite.tipoTramite) {
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-500">Tipo</span>
+        <span class="font-medium text-gray-900">{{ c.tramite.tipoTramite.nombre }}</span>
+      </div>
+      }
+
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-500">Estado del trámite</span>
+        <span class="font-medium text-gray-900">{{ c.tramite.estado }}</span>
+      </div>
+
+      @if (c.tramite.observaciones) {
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-500">Observaciones</span>
+        <span class="font-medium text-gray-900">{{ c.tramite.observaciones }}</span>
+      </div>
+      }
+    </div>
+
+    @if (c.tramite) {
+    <div class="mt-6 bg-white rounded-lg border border-gray-200 p-6">
+      <h2 class="font-semibold text-gray-900 mb-3">Documentos</h2>
+      @if (c.tramite.documentos && c.tramite.documentos.length > 0) {
+      <div class="flex flex-col gap-2">
+        @for (doc of c.tramite.documentos; track doc.id) {
+        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <a [href]="apiUrl + doc.ruta_archivo" target="_blank" class="text-sm font-medium text-brand hover:underline">
+            {{ doc.nombre_archivo }}
+          </a>
+        </div>
+        }
+      </div>
+      } @else {
+      <p class="text-sm text-gray-500">No hay documentos.</p>
+      }
+    </div>
+    }
+  </div>
+  }
+  }
+</div>

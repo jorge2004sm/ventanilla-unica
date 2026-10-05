@@ -1,0 +1,66 @@
+<div class="max-w-4xl mx-auto px-6 py-8">
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">Mis citas</h1>
+
+  <!-- Filtros -->
+  <div class="flex flex-wrap gap-2 mb-6">
+    @for (estado of estados; track estado.valor) {
+      <button
+        (click)="filtrar(estado.valor)"
+        class="px-4 py-1.5 rounded-full text-sm transition-colors"
+        [class]="filtroEstado() === estado.valor
+          ? 'bg-brand text-white'
+          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+      >
+        {{ estado.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="text-center py-12">
+      <p class="text-gray-500">Cargando citas...</p>
+    </div>
+  } @else if (citasFiltradas().length === 0) {
+    <div class="text-center py-12 bg-white rounded-lg border border-gray-200">
+      <p class="text-gray-500">No tienes citas {{ filtroEstado() !== 'todos' ? 'con ese estado' : 'registradas' }}.</p>
+      <a routerLink="/solicitar-cita" class="text-brand hover:underline text-sm mt-2 inline-block">
+        Solicitar una cita
+      </a>
+    </div>
+  } @else {
+    <!-- Listado -->
+    <div class="flex flex-col gap-3">
+      @for (cita of citasFiltradas(); track cita.id) {
+        <a
+          [routerLink]="['/ciudadano/citas', cita.id]"
+          class="bg-white rounded-lg border border-gray-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-brand transition-colors"
+        >
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+            <!-- Fecha y hora -->
+            <div class="text-center sm:text-left">
+              <p class="text-sm font-semibold text-gray-900">{{ cita.fecha | date:'dd/MM/yyyy' }}</p>
+              <p class="text-xs text-gray-500">{{ cita.hora_inicio | slice:0:5 }} - {{ cita.hora_fin | slice:0:5 }}</p>
+            </div>
+
+            <!-- Info -->
+            <div>
+              <p class="font-medium text-gray-900">{{ cita.tenant.nombre }}</p>
+              @if (cita.tramite?.tipoTramite) {
+                <p class="text-sm text-gray-500">{{ cita.tramite?.tipoTramite?.nombre }}</p>
+              }
+            </div>
+          </div>
+
+          <!-- Badge estado -->
+          <span
+            class="inline-flex self-start sm:self-center px-3 py-1 rounded-full text-xs font-medium"
+            [class]="badgeClass(cita.estado)"
+          >
+            {{ estadoLabel(cita.estado) }}
+          </span>
+        </a>
+      }
+    </div>
+  }
+</div>

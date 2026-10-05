@@ -1,0 +1,104 @@
+<div class="max-w-2xl mx-auto px-6 py-12">
+  @if (loading()) {
+    <div class="text-center py-12">
+      <p class="text-gray-500">Cargando confirmación...</p>
+    </div>
+  } @else if (error()) {
+    <div class="text-center py-12">
+      <p class="text-red-600 mb-4">No se pudo cargar la confirmación de la cita.</p>
+      <a routerLink="/" class="text-brand hover:underline">Volver al inicio</a>
+    </div>
+  } @else if (cita(); as c) {
+    <!-- Check verde -->
+    <div class="text-center mb-8">
+      <div class="flex justify-center mb-4">
+        <svg class="w-16 h-16 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+          <path fill-rule="evenodd"
+            d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+            clip-rule="evenodd" />
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-gray-900">Cita confirmada</h1>
+      <p class="text-gray-500 mt-1">Tu cita ha sido registrada correctamente</p>
+    </div>
+
+    <!-- Resumen -->
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <h2 class="font-semibold text-gray-900 mb-4">Resumen de tu cita</h2>
+
+      <div class="flex flex-col gap-3 text-sm">
+        <div class="flex justify-between py-2 border-b border-gray-100">
+          <span class="text-gray-500">Nombre</span>
+          <span class="font-medium text-gray-900">{{ c.ciudadano_nombre }} {{ c.ciudadano_apellidos }}</span>
+        </div>
+
+        <div class="flex justify-between py-2 border-b border-gray-100">
+          <span class="text-gray-500">DNI</span>
+          <span class="font-medium text-gray-900">{{ c.ciudadano_dni }}</span>
+        </div>
+
+        <div class="flex justify-between py-2 border-b border-gray-100">
+          <span class="text-gray-500">Email</span>
+          <span class="font-medium text-gray-900">{{ c.ciudadano_email }}</span>
+        </div>
+
+        <div class="flex justify-between py-2 border-b border-gray-100">
+          <span class="text-gray-500">Teléfono</span>
+          <span class="font-medium text-gray-900">{{ c.ciudadano_telefono }}</span>
+        </div>
+
+        <div class="flex justify-between py-2 border-b border-gray-100">
+          <span class="text-gray-500">Fecha</span>
+          <span class="font-medium text-gray-900">{{ c.fecha }}</span>
+        </div>
+
+        <div class="flex justify-between py-2 border-b border-gray-100">
+          <span class="text-gray-500">Hora</span>
+          <span class="font-medium text-gray-900">{{ c.hora_inicio | slice:0:5 }} - {{ c.hora_fin | slice:0:5 }}</span>
+        </div>
+
+        <div class="flex justify-between py-2 border-b border-gray-100">
+          <span class="text-gray-500">Organización</span>
+          <span class="font-medium text-gray-900">{{ c.tenant.nombre }}</span>
+        </div>
+
+        @if (c.empleado?.mesa) {
+          <div class="flex justify-between py-2 border-b border-gray-100">
+            <span class="text-gray-500">Mesa asignada</span>
+            <span class="font-medium text-gray-900">Mesa {{ c.empleado.mesa?.numero }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Recordatorio de documentos -->
+    @if (c.tramite?.tipoTramite?.requisitos_documentos) {
+      <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <h3 class="font-semibold text-brand mb-2 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Recuerda traer la documentación
+        </h3>
+        <p class="text-sm text-gray-700">{{ c.tramite?.tipoTramite?.requisitos_documentos }}</p>
+      </div>
+    }
+
+    <!-- Botones -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+      <a
+        routerLink="/"
+        class="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+      >
+        Volver al inicio
+      </a>
+      <a
+        routerLink="/solicitar-cita"
+        class="px-8 py-3 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors font-medium"
+      >
+        Solicitar nueva cita
+      </a>
+    </div>
+  }
+</div>

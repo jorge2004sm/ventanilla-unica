@@ -1,0 +1,85 @@
+<div class="p-8">
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">Salas y mesas</h1>
+
+  @if (successMsg()) {
+    <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded text-sm">{{ successMsg() }}</div>
+  }
+  @if (errorMsg()) {
+    <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">{{ errorMsg() }}</div>
+  }
+
+  <!-- Crear sala -->
+  <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6 flex flex-col sm:flex-row gap-3">
+    <input type="text" [(ngModel)]="nuevaSalaNombre" placeholder="Nombre de la sala"
+      class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+    <input type="text" [(ngModel)]="nuevaSalaDescripcion" placeholder="Descripción (opcional)"
+      class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+    <button (click)="crearSala()"
+      class="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors text-sm whitespace-nowrap">
+      Crear sala
+    </button>
+  </div>
+
+  <!-- Listado -->
+  @if (loading()) {
+    <p class="text-gray-500">Cargando...</p>
+  } @else if (salas().length === 0) {
+    <div class="text-center py-12 bg-white rounded-lg border border-gray-200">
+      <p class="text-gray-500">No hay salas creadas.</p>
+    </div>
+  } @else {
+    <div class="flex flex-col gap-4">
+      @for (sala of salas(); track sala.id) {
+        <div class="bg-white rounded-lg border border-gray-200">
+          <button (click)="toggleSala(sala)"
+            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+            <div class="text-left">
+              <h3 class="font-semibold text-gray-900">{{ sala.nombre }}</h3>
+              @if (sala.descripcion) {
+                <p class="text-sm text-gray-500">{{ sala.descripcion }}</p>
+              }
+            </div>
+            <svg class="w-5 h-5 text-gray-400 transition-transform" [class.rotate-180]="sala.expandida"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          @if (sala.expandida) {
+            <div class="border-t border-gray-200 p-4">
+              @if (sala.mesas.length === 0) {
+                <p class="text-sm text-gray-500 mb-3">No hay mesas en esta sala.</p>
+              } @else {
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
+                  @for (mesa of sala.mesas; track mesa.id) {
+                    <div class="bg-gray-50 rounded-lg p-3 text-center">
+                      <p class="font-semibold text-gray-900">Mesa {{ mesa.numero }}</p>
+                      <span class="text-xs" [class]="mesa.activa ? 'text-green-600' : 'text-red-600'">
+                        {{ mesa.activa ? 'Activa' : 'Inactiva' }}
+                      </span>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Crear mesa -->
+              @if (nuevaMesaSalaId === sala.id) {
+                <div class="flex gap-3 items-center">
+                  <input type="number" [(ngModel)]="nuevaMesaNumero" min="1" placeholder="Nº mesa"
+                    class="w-24 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+                  <button (click)="crearMesa(sala.id)"
+                    class="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors text-sm">Crear</button>
+                  <button (click)="nuevaMesaSalaId = null"
+                    class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">Cancelar</button>
+                </div>
+              } @else {
+                <button (click)="nuevaMesaSalaId = sala.id"
+                  class="text-sm text-brand hover:underline">+ Añadir mesa</button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

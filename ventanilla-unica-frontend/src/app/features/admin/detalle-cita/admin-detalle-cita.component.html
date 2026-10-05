@@ -1,0 +1,202 @@
+<div class="p-8">
+  @if (loading()) {
+    <div class="text-center py-12">
+      <p class="text-gray-500">Cargando cita...</p>
+    </div>
+  } @else if (cita(); as c) {
+    <div class="mb-6">
+      <a routerLink="/admin/citas" class="text-sm text-brand hover:underline mb-2 inline-block">
+        ← Volver a citas
+      </a>
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900">Detalle de cita</h1>
+        <span
+          class="px-3 py-1 rounded-full text-xs font-medium"
+          [class]="badgeClass(c.estado)"
+        >
+          {{ estadoLabel(c.estado) }}
+        </span>
+      </div>
+    </div>
+
+    @if (successMsg()) {
+      <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded text-sm">{{ successMsg() }}</div>
+    }
+    @if (errorMsg()) {
+      <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">{{ errorMsg() }}</div>
+    }
+
+    <!-- Layout dos columnas -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Columna izquierda -->
+      <div class="flex flex-col gap-6">
+        <!-- Datos del ciudadano -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <h2 class="font-semibold text-gray-900 mb-3">Datos del ciudadano</h2>
+          <div class="flex flex-col gap-3 text-sm">
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-500">Nombre</span>
+              <span class="font-medium text-gray-900">{{ c.ciudadano_nombre }} {{ c.ciudadano_apellidos }}</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-500">DNI</span>
+              <span class="font-medium text-gray-900">{{ c.ciudadano_dni }}</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-500">Email</span>
+              <span class="font-medium text-gray-900">{{ c.ciudadano_email }}</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-500">Teléfono</span>
+              <span class="font-medium text-gray-900">{{ c.ciudadano_telefono }}</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-500">Fecha</span>
+              <span class="font-medium text-gray-900">{{ c.fecha }}</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-500">Hora</span>
+              <span class="font-medium text-gray-900">{{ c.hora_inicio | slice:0:5 }} - {{ c.hora_fin | slice:0:5 }}</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-500">Empleado</span>
+              <span class="font-medium text-gray-900">{{ c.empleado.nombre }} {{ c.empleado.apellidos }}</span>
+            </div>
+            @if (c.empleado?.mesa) {
+              <div class="flex justify-between py-2 border-b border-gray-100">
+                <span class="text-gray-500">Mesa / Sala</span>
+                <span class="font-medium text-gray-900">
+                  Mesa {{ c.empleado.mesa?.numero }}
+                  @if (c.empleado.mesa?.sala) { — {{ c.empleado.mesa?.sala?.nombre }} }
+                </span>
+              </div>
+            }
+            @if (c.tramite?.tipoTramite) {
+              <div class="flex justify-between py-2 border-b border-gray-100">
+                <span class="text-gray-500">Trámite</span>
+                <span class="font-medium text-gray-900">{{ c.tramite?.tipoTramite?.nombre }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Documentos -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-semibold text-gray-900">Documentos</h2>
+            @if (tramite()) {
+              <button (click)="mostrarFormDoc.set(!mostrarFormDoc())"
+                class="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors text-sm">
+                {{ mostrarFormDoc() ? 'Cancelar' : 'Añadir documento' }}
+              </button>
+            }
+          </div>
+
+          @if (tramite()?.tipoTramite?.requisitos_documentos) {
+            <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p class="text-sm font-medium text-brand mb-1">Documentos requeridos</p>
+              <p class="text-sm text-gray-700">{{ tramite()?.tipoTramite?.requisitos_documentos }}</p>
+            </div>
+          }
+
+          @if (mostrarFormDoc()) {
+            <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+              <div class="flex flex-col gap-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Seleccionar archivo</label>
+                  <input type="file" (change)="onArchivoSeleccionado($event)"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    class="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-brand file:text-white hover:file:bg-brand-dark file:cursor-pointer file:transition-colors" />
+                  <p class="mt-1 text-xs text-gray-400">PDF, JPG, PNG o DOC. Máximo 5MB.</p>
+                </div>
+                @if (archivoSeleccionado) {
+                  <p class="text-sm text-gray-600">Archivo: {{ archivoSeleccionado.name }} ({{ (archivoSeleccionado.size / 1024).toFixed(0) }} KB)</p>
+                }
+                <button (click)="subirDocumento()" [disabled]="subiendoDoc() || !archivoSeleccionado"
+                  class="self-end px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors text-sm disabled:opacity-60">
+                  {{ subiendoDoc() ? 'Subiendo...' : 'Subir documento' }}
+                </button>
+              </div>
+            </div>
+          }
+
+          @if (documentos().length === 0) {
+            <p class="text-sm text-gray-500">No hay documentos.</p>
+          } @else {
+            <div class="flex flex-col gap-2">
+              @for (doc of documentos(); track doc.id) {
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <div>
+                      <a [href]="apiUrl + doc.ruta_archivo" target="_blank"
+                        class="text-sm font-medium text-brand hover:underline">
+                        {{ doc.nombre_archivo }}
+                      </a>
+                      <p class="text-xs text-gray-500">{{ doc.ruta_archivo }}</p>
+                    </div>
+                  </div>
+                  <p class="text-xs text-gray-400">{{ doc.created_at | slice:0:10 }}</p>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Columna derecha -->
+      <div class="flex flex-col gap-6">
+        <!-- Gestionar estado -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <h2 class="font-semibold text-gray-900 mb-4">Gestionar cita</h2>
+          <div class="flex flex-col gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+              <select [(ngModel)]="nuevoEstado"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent">
+                @for (e of estadosDisponibles; track e.valor) {
+                  <option [value]="e.valor">{{ e.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+              <textarea [(ngModel)]="observaciones" rows="3"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+                placeholder="Añadir observaciones..."></textarea>
+            </div>
+
+            <button (click)="guardar()" [disabled]="saving()"
+              class="self-end px-6 py-2.5 bg-brand text-white rounded hover:bg-brand-dark transition-colors disabled:opacity-60">
+              {{ saving() ? 'Guardando...' : 'Guardar cambios' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Reasignar empleado -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <h2 class="font-semibold text-gray-900 mb-4">Reasignar empleado</h2>
+          <div class="flex flex-col gap-3">
+            <select [(ngModel)]="empleadoReasignar"
+              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent">
+              @for (emp of empleados(); track emp.id) {
+                <option [value]="emp.id">
+                  {{ emp.nombre }} {{ emp.apellidos }}
+                  @if (emp.mesa) { — Mesa {{ emp.mesa.numero }} }
+                </option>
+              }
+            </select>
+            <button (click)="reasignar()" [disabled]="saving()"
+              class="self-end px-6 py-2.5 bg-brand text-white rounded hover:bg-brand-dark transition-colors disabled:opacity-60">
+              Reasignar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

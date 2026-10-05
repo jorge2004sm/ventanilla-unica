@@ -1,0 +1,226 @@
+<div class="max-w-4xl mx-auto px-6 py-12">
+  <!-- Cabecera -->
+  <div class="flex items-center gap-3 mb-2">
+    <svg class="w-8 h-8 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+    </svg>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Solicitar Cita</h1>
+      <p class="text-sm text-gray-500">Rellena el formulario para solicitar una cita presencial</p>
+    </div>
+  </div>
+
+  <!-- Stepper -->
+  <div class="flex items-center justify-between my-8">
+    @for (paso of pasos; track paso.numero) {
+    <button (click)="irAPaso(paso.numero)" class="flex items-center gap-2 transition-opacity"
+      [class.cursor-pointer]="paso.numero < pasoActual()" [class.cursor-default]="paso.numero >= pasoActual()"
+      [class.opacity-60]="paso.numero > pasoActual()" [class.hover:opacity-80]="paso.numero < pasoActual()">
+      <span class="w-8 h-8 rounded-full text-sm font-bold flex items-center justify-center transition-colors"
+        [class]="paso.numero <= pasoActual() ? 'bg-brand text-white' : 'bg-gray-200 text-gray-500'">
+        @if (paso.numero < pasoActual()) { <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+          } @else {
+          {{ paso.numero }}
+          }
+      </span>
+      <span class="hidden sm:inline text-sm"
+        [class]="paso.numero <= pasoActual() ? 'text-gray-900 font-medium' : 'text-gray-400'">
+        {{ paso.titulo }}
+      </span>
+    </button>
+    @if (paso.numero < totalPasos) { <div class="flex-1 h-0.5 mx-2 transition-colors"
+      [class]="paso.numero < pasoActual() ? 'bg-brand' : 'bg-gray-200'">
+  </div>
+  }
+  }
+</div>
+
+<!-- Error global -->
+@if (errorMsg()) {
+<div class="mb-6 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">
+  {{ errorMsg() }}
+</div>
+}
+
+<!-- Contenido de cada paso -->
+<div class="bg-white rounded-lg border border-gray-200 p-6 sm:p-8">
+
+  <!-- PASO 1: Tipo de trámite -->
+  @if (pasoActual() === 1) {
+  <h2 class="text-lg font-semibold text-gray-900 mb-4">Selecciona el tipo de trámite</h2>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    @for (tipo of tiposTramiteUnicos(); track tipo.id) {
+    <button (click)="seleccionarTipoTramite(tipo)"
+      class="p-4 rounded-lg border text-left transition-all hover:shadow-sm" [class]="tipoTramiteSeleccionado()?.id === tipo.id
+              ? 'border-brand bg-blue-50 ring-2 ring-brand'
+              : 'border-gray-200 hover:border-gray-300'">
+      <h3 class="font-semibold text-gray-900">{{ tipo.nombre }}</h3>
+      <p class="text-sm text-gray-500 mt-1">{{ tipo.descripcion }}</p>
+    </button>
+    }
+  </div>
+
+  @if (tipoTramiteSeleccionado(); as tipo) {
+  @if (tipo.requisitos_documentos) {
+  <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+    <h3 class="font-semibold text-brand mb-2 flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      {{ tipo.nombre }}
+    </h3>
+    <p class="text-sm text-gray-700">{{ tipo.descripcion }}</p>
+    <div class="mt-3 pt-3 border-t border-blue-200">
+      <p class="text-sm font-medium text-gray-700 mb-1">Documentos requeridos:</p>
+      <p class="text-sm text-gray-600">{{ tipo.requisitos_documentos }}</p>
+    </div>
+  </div>
+  }
+  }
+  }
+
+  <!-- PASO 2: Organización -->
+  @if (pasoActual() === 2) {
+  <h2 class="text-lg font-semibold text-gray-900 mb-4">Selecciona la organización</h2>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    @for (tenant of tenants(); track tenant.id) {
+    <button (click)="seleccionarTenant(tenant)" class="p-4 rounded-lg border text-left transition-all hover:shadow-sm"
+      [class]="tenantSeleccionado()?.id === tenant.id
+              ? 'border-brand bg-blue-50 ring-2 ring-brand'
+              : 'border-gray-200 hover:border-gray-300'">
+      <h3 class="font-semibold text-gray-900">{{ tenant.nombre }}</h3>
+      @if (tenant.direccion) {
+      <p class="text-sm text-gray-500 mt-1">{{ tenant.direccion }}</p>
+      }
+    </button>
+    }
+  </div>
+  }
+
+  <!-- PASO 3: Fecha y hora -->
+  @if (pasoActual() === 3) {
+  <h2 class="text-lg font-semibold text-gray-900 mb-4">Selecciona fecha y hora</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Selector de fecha -->
+    <div>
+      <label for="fecha" class="block text-sm font-medium text-gray-700 mb-2">Fecha</label>
+      <input id="fecha" type="date" [min]="fechaMinima" [max]="fechaMaxima" [value]="fechaSeleccionada()"
+        (change)="seleccionarFecha($any($event.target).value)"
+        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+    </div>
+
+    <!-- Slots de hora -->
+    <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+      @for (slot of horasDisponibles(); track slot.hora_inicio) {
+      <button (click)="!estaOcupada(slot.hora_inicio) && seleccionarHora(slot)"
+        [disabled]="estaOcupada(slot.hora_inicio)" class="py-2 px-3 rounded border text-sm text-center transition-all"
+        [class]="estaOcupada(slot.hora_inicio)
+                        ? 'border-gray-100 bg-gray-100 text-gray-400 cursor-not-allowed line-through'
+                        : horaSeleccionada()?.hora_inicio === slot.hora_inicio
+                            ? 'border-brand bg-brand text-white'
+                            : 'border-gray-200 text-gray-700 hover:border-brand hover:text-brand'">
+        {{ slot.hora_inicio }}
+      </button>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- PASO 4: Datos del solicitante -->
+  @if (pasoActual() === 4) {
+  <h2 class="text-lg font-semibold text-gray-900 mb-4">Datos del solicitante</h2>
+
+  <form [formGroup]="datosForm" (input)="datosForm.updateValueAndValidity()" class="flex flex-col gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+        <input id="nombre" type="text" formControlName="ciudadano_nombre"
+          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+          [class.border-red-400]="datosForm.controls.ciudadano_nombre.touched && datosForm.controls.ciudadano_nombre.invalid" />
+        @if (datosForm.controls.ciudadano_nombre.touched && datosForm.controls.ciudadano_nombre.invalid) {
+        <p class="mt-1 text-xs text-red-600">El nombre es obligatorio.</p>
+        }
+      </div>
+
+      <div>
+        <label for="apellidos" class="block text-sm font-medium text-gray-700 mb-1">Apellidos</label>
+        <input id="apellidos" type="text" formControlName="ciudadano_apellidos"
+          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+          [class.border-red-400]="datosForm.controls.ciudadano_apellidos.touched && datosForm.controls.ciudadano_apellidos.invalid" />
+        @if (datosForm.controls.ciudadano_apellidos.touched && datosForm.controls.ciudadano_apellidos.invalid) {
+        <p class="mt-1 text-xs text-red-600">Los apellidos son obligatorios.</p>
+        }
+      </div>
+    </div>
+
+    <div>
+      <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+      <input id="email" type="email" formControlName="ciudadano_email"
+        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+        [class.border-red-400]="datosForm.controls.ciudadano_email.touched && datosForm.controls.ciudadano_email.invalid" />
+      @if (datosForm.controls.ciudadano_email.touched && datosForm.controls.ciudadano_email.invalid) {
+      <p class="mt-1 text-xs text-red-600">
+        @if (datosForm.controls.ciudadano_email.errors?.['required']) {
+        El email es obligatorio.
+        } @else if (datosForm.controls.ciudadano_email.errors?.['email']) {
+        Introduce un email válido.
+        }
+      </p>
+      }
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label for="dni" class="block text-sm font-medium text-gray-700 mb-1">DNI</label>
+        <input id="dni" type="text" formControlName="ciudadano_dni"
+          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+          [class.border-red-400]="datosForm.controls.ciudadano_dni.touched && datosForm.controls.ciudadano_dni.invalid" />
+        @if (datosForm.controls.ciudadano_dni.touched && datosForm.controls.ciudadano_dni.invalid) {
+        <p class="mt-1 text-xs text-red-600">El DNI es obligatorio.</p>
+        }
+      </div>
+
+      <div>
+        <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+        <input id="telefono" type="tel" formControlName="ciudadano_telefono"
+          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+          [class.border-red-400]="datosForm.controls.ciudadano_telefono.touched && datosForm.controls.ciudadano_telefono.invalid" />
+        @if (datosForm.controls.ciudadano_telefono.touched && datosForm.controls.ciudadano_telefono.invalid) {
+        <p class="mt-1 text-xs text-red-600">El teléfono es obligatorio.</p>
+        }
+      </div>
+    </div>
+  </form>
+  }
+</div>
+
+<!-- Botones de navegación -->
+<div class="flex justify-between mt-6">
+  @if (pasoActual() > 1) {
+  <button (click)="anterior()"
+    class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+    Anterior
+  </button>
+  } @else {
+  <div></div>
+  }
+
+  <button (click)="siguiente()" [disabled]="!puedeAvanzar() || loading()"
+    class="px-8 py-2.5 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+    @if (loading()) {
+    Enviando...
+    } @else if (pasoActual() === totalPasos) {
+    Confirmar cita
+    } @else {
+    Siguiente
+    }
+  </button>
+</div>
+</div>

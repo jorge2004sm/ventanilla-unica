@@ -1,0 +1,86 @@
+<div class="max-w-5xl mx-auto px-6 py-8">
+  <!-- Saludo -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Buenos días, {{ auth.user()?.nombre }}</h1>
+    <p class="text-sm text-gray-500">{{ fechaFiltro() }}</p>
+  </div>
+
+  <!-- Métricas -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+      <p class="text-sm text-gray-500 mb-1">Citas hoy</p>
+      <p class="text-2xl font-bold text-gray-900">{{ metricas().total }}</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+      <p class="text-sm text-gray-500 mb-1">Pendientes</p>
+      <p class="text-2xl font-bold text-yellow-600">{{ metricas().pendientes }}</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+      <p class="text-sm text-gray-500 mb-1">Completadas</p>
+      <p class="text-2xl font-bold text-green-600">{{ metricas().completadas }}</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+      <p class="text-sm text-gray-500 mb-1">Próxima cita</p>
+      <p class="text-2xl font-bold text-brand">{{ metricas().proxima }}</p>
+    </div>
+  </div>
+  
+  <!-- Citas del día -->
+  <div class="bg-white rounded-lg border border-gray-200 p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+      <h2 class="text-lg font-semibold text-gray-900">Citas del día</h2>
+      <input
+        type="date"
+        [value]="fechaFiltro()"
+        (change)="cambiarFecha($any($event.target).value)"
+        class="px-3 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+      />
+    </div>
+
+    @if (loading()) {
+      <p class="text-gray-500 text-sm py-4">Cargando citas...</p>
+    } @else if (citas().length === 0) {
+      <p class="text-gray-500 text-sm py-4">No hay citas para este día.</p>
+    } @else {
+      <div class="flex flex-col gap-3">
+        @for (cita of citas(); track cita.id) {
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-gray-50 rounded-lg">
+            <!-- Hora -->
+            <div class="flex items-center gap-4">
+              <span class="text-lg font-bold text-brand min-w-[60px]">
+                {{ cita.hora_inicio | slice:0:5 }}
+              </span>
+              <div>
+                <p class="font-medium text-gray-900">
+                  {{ cita.ciudadano_nombre }} {{ cita.ciudadano_apellidos }}
+                </p>
+                <p class="text-sm text-gray-500">
+                  DNI: {{ cita.ciudadano_dni }}
+                  @if (cita.tramite?.tipoTramite) {
+                    — {{ cita.tramite?.tipoTramite?.nombre }}
+                  }
+                </p>
+              </div>
+            </div>
+
+            <!-- Estado + acción -->
+            <div class="flex items-center gap-3">
+              <span
+                class="px-3 py-1 rounded-full text-xs font-medium"
+                [class]="badgeClass(cita.estado)"
+              >
+                {{ estadoLabel(cita.estado) }}
+              </span>
+              <a
+                [routerLink]="['/empleado/citas', cita.id]"
+                class="text-sm text-brand hover:underline font-medium"
+              >
+                Gestionar
+              </a>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

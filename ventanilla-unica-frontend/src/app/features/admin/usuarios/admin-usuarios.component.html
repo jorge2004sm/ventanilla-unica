@@ -1,0 +1,161 @@
+<div class="p-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Gestión de empleados</h1>
+    <button
+      (click)="abrirModal()"
+      class="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors text-sm"
+    >
+      Crear empleado
+    </button>
+  </div>
+
+  @if (successMsg()) {
+    <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded text-sm">
+      {{ successMsg() }}
+    </div>
+  }
+  @if (errorMsg()) {
+    <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">
+      {{ errorMsg() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="text-gray-500">Cargando empleados...</p>
+  } @else if (empleados().length === 0) {
+    <div class="text-center py-12 bg-white rounded-lg border border-gray-200">
+      <p class="text-gray-500">No hay empleados registrados.</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (emp of empleados(); track emp.id) {
+        <div class="bg-white rounded-lg border border-gray-200 p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-gray-900">{{ emp.nombre }} {{ emp.apellidos }}</h3>
+            <span
+              class="px-2 py-1 rounded-full text-xs font-medium"
+              [class]="emp.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+            >
+              {{ emp.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+          <div class="text-sm text-gray-500 flex flex-col gap-1">
+            <p>{{ emp.email }}</p>
+            @if (emp.dni) { <p>DNI: {{ emp.dni }}</p> }
+            @if (emp.telefono) { <p>Tel: {{ emp.telefono }}</p> }
+            @if (emp.mesa) {
+              <p>Mesa {{ emp.mesa.numero }}
+                @if (emp.mesa.sala) { — {{ emp.mesa.sala.nombre }} }
+              </p>
+            }
+          </div>
+          @if (emp.activo) {
+            <button
+              (click)="desactivarEmpleado(emp.id)"
+              class="mt-3 text-sm text-red-600 hover:underline"
+            >
+              Desactivar empleado
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Modal crear empleado -->
+  @if (mostrarModal()) {
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg w-full max-w-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-gray-900">Crear empleado</h2>
+          <button (click)="cerrarModal()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        </div>
+
+        @if (errorMsg()) {
+          <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">
+            {{ errorMsg() }}
+          </div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="crearEmpleado()" class="flex flex-col gap-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+              <input type="text" formControlName="nombre"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+                [class.border-red-400]="form.controls.nombre.touched && form.controls.nombre.invalid" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Apellidos</label>
+              <input type="text" formControlName="apellidos"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+                [class.border-red-400]="form.controls.apellidos.touched && form.controls.apellidos.invalid" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input type="email" formControlName="email"
+              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+              [class.border-red-400]="form.controls.email.touched && form.controls.email.invalid" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+            <input type="password" formControlName="password"
+              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+              [class.border-red-400]="form.controls.password.touched && form.controls.password.invalid" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">DNI <span class="text-gray-400">(opcional)</span></label>
+              <input type="text" formControlName="dni"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono <span class="text-gray-400">(opcional)</span></label>
+              <input type="tel" formControlName="telefono"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Sala <span class="text-gray-400">(opcional)</span></label>
+              <select formControlName="sala_id"
+                (change)="onSalaChange(form.controls.sala_id.value)"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent">
+                <option [value]="0">Sin asignar</option>
+                @for (sala of salas(); track sala.id) {
+                  <option [value]="sala.id">{{ sala.nombre }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Mesa <span class="text-gray-400">(opcional)</span></label>
+              <select formControlName="mesa_id"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent">
+                <option [value]="0">Sin asignar</option>
+                @for (mesa of mesasDeSala(); track mesa.id) {
+                  <option [value]="mesa.id">Mesa {{ mesa.numero }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 mt-2">
+            <button type="button" (click)="cerrarModal()"
+              class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+              Cancelar
+            </button>
+            <button type="submit" [disabled]="saving()"
+              class="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors disabled:opacity-60">
+              {{ saving() ? 'Creando...' : 'Crear empleado' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

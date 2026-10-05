@@ -1,0 +1,70 @@
+services:
+  db:
+    image: mysql:latest
+    container_name: mysql-ventanilla
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'mysqladmin',
+          'ping',
+          '-h',
+          'localhost',
+          '-uroot',
+          '-p${MYSQL_ROOT_PASSWORD}',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: .
+    container_name: backend-ventanilla
+    restart: always
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      DB_DATABASE: ${MYSQL_DATABASE}
+      JWT_SECRET: ${JWT_SECRET}
+      N8N_WEBHOOK_URL: http://n8n:5678/webhook/confirmar-cita-ventanilla-unica
+    ports:
+      - '3000:3000'
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ../ventanilla-unica-frontend
+    container_name: frontend-ventanilla
+    restart: always
+    ports:
+      - '4200:80'
+    depends_on:
+      - backend
+
+  n8n:
+    image: n8nio/n8n
+    container_name: n8n-ventanilla
+    restart: always
+    ports:
+      - '5678:5678'
+    volumes:
+      - n8n_data:/home/node/.n8n
+    environment:
+      - WEBHOOK_URL=http://localhost:5678
+
+volumes:
+  n8n_data:

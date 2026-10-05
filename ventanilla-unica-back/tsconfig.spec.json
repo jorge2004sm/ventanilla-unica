@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "types": ["jest"],
+    "module": "commonjs",
+    "target": "ES2021"
+  }
+}

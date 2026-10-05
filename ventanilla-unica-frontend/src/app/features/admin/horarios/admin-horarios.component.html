@@ -1,0 +1,195 @@
+<div class="p-8">
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">Gestión de horarios</h1>
+
+  @if (successMsg()) {
+    <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded text-sm">{{ successMsg() }}</div>
+  }
+  @if (errorMsg()) {
+    <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">{{ errorMsg() }}</div>
+  }
+
+  <!-- Pestañas -->
+  <div class="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
+    @for (tab of [{ id: 'base', label: 'Horario base' }, { id: 'especiales', label: 'Especiales' }, { id: 'festivos', label: 'Festivos' }]; track tab.id) {
+      <button
+        (click)="cambiarTab($any(tab.id))"
+        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+        [class]="tabActiva() === tab.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+      >
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <button (click)="abrirForm()" class="mb-6 px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors text-sm">
+    Crear horario
+  </button>
+
+  <!-- Formulario crear/editar -->
+  @if (mostrarForm()) {
+    <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+      <h2 class="font-semibold text-gray-900 mb-4">
+        {{ editandoId() ? 'Editar horario' : 'Crear horario' }}
+      </h2>
+
+      @if (errorMsg()) {
+        <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">{{ errorMsg() }}</div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="flex flex-col gap-4">
+        @if (tabActiva() === 'base') {
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Día de la semana</label>
+            <select formControlName="dia_semana"
+              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent">
+              <option value="">Seleccionar</option>
+              @for (dia of diasSemana; track dia) {
+                <option [value]="dia">{{ diaLabel(dia) }}</option>
+              }
+            </select>
+          </div>
+        } @else {
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Fecha inicio</label>
+              <input type="date" formControlName="fecha_inicio"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Fecha fin</label>
+              <input type="date" formControlName="fecha_fin"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+            </div>
+          </div>
+        }
+
+        @if (!form.controls.es_festivo.value) {
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Hora inicio</label>
+              <input type="time" formControlName="hora_inicio"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Hora fin</label>
+              <input type="time" formControlName="hora_fin"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Duración cita (min)</label>
+              <input type="number" formControlName="duracion_cita" min="5"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+              <input type="text" formControlName="descripcion"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+            </div>
+          </div>
+        }
+
+        @if (form.controls.es_festivo.value) {
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+            <input type="text" formControlName="descripcion" placeholder="Ej: Día de la Constitución"
+              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+          </div>
+        }
+
+        <div class="flex justify-end gap-3">
+          <button type="button" (click)="cancelarForm()"
+            class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">Cancelar</button>
+          <button type="submit" [disabled]="saving()"
+            class="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors disabled:opacity-60">
+            {{ saving() ? 'Guardando...' : editandoId() ? 'Guardar cambios' : 'Crear' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Listado -->
+  @if (loading()) {
+    <p class="text-gray-500">Cargando...</p>
+  } @else {
+    <!-- Base -->
+    @if (tabActiva() === 'base') {
+      @if (horariosBase().length === 0) {
+        <p class="text-gray-500 text-sm">No hay horarios base definidos.</p>
+      } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          @for (h of horariosBase(); track h.id) {
+            <div class="bg-white rounded-lg border border-gray-200 p-4">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h3 class="font-semibold text-gray-900 mb-1">{{ diaLabel(h.dia_semana ?? '') }}</h3>
+                  <p class="text-sm text-gray-600">{{ h.hora_inicio | slice:0:5 }} - {{ h.hora_fin | slice:0:5 }}</p>
+                  <p class="text-xs text-gray-500 mt-1">Duración: {{ h.duracion_cita }} min</p>
+                  @if (h.descripcion) {
+                    <p class="text-xs text-gray-400 mt-1">{{ h.descripcion }}</p>
+                  }
+                </div>
+                <div class="flex gap-2">
+                  <button (click)="editarHorario(h)" class="text-xs text-brand hover:underline">Editar</button>
+                  <button (click)="desactivarHorario(h.id)" class="text-xs text-red-600 hover:underline">Eliminar</button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- Especiales -->
+    @if (tabActiva() === 'especiales') {
+      @if (horariosEspeciales().length === 0) {
+        <p class="text-gray-500 text-sm">No hay horarios especiales.</p>
+      } @else {
+        <div class="flex flex-col gap-3">
+          @for (h of horariosEspeciales(); track h.id) {
+            <div class="bg-white rounded-lg border border-gray-200 p-4">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="font-semibold text-gray-900">{{ h.fecha_inicio }} — {{ h.fecha_fin }}</p>
+                  <p class="text-sm text-gray-600">{{ h.hora_inicio | slice:0:5 }} - {{ h.hora_fin | slice:0:5 }}</p>
+                  @if (h.descripcion) { <p class="text-xs text-gray-400 mt-1">{{ h.descripcion }}</p> }
+                </div>
+                <div class="flex gap-2">
+                  <button (click)="editarHorario(h)" class="text-xs text-brand hover:underline">Editar</button>
+                  <button (click)="desactivarHorario(h.id)" class="text-xs text-red-600 hover:underline">Eliminar</button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- Festivos -->
+    @if (tabActiva() === 'festivos') {
+      @if (festivos().length === 0) {
+        <p class="text-gray-500 text-sm">No hay festivos registrados.</p>
+      } @else {
+        <div class="flex flex-col gap-3">
+          @for (h of festivos(); track h.id) {
+            <div class="bg-white rounded-lg border border-gray-200 p-4">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="font-semibold text-gray-900">{{ h.fecha_inicio }} — {{ h.fecha_fin }}</p>
+                  @if (h.descripcion) { <p class="text-sm text-gray-500">{{ h.descripcion }}</p> }
+                </div>
+                <div class="flex gap-2">
+                  <button (click)="editarHorario(h)" class="text-xs text-brand hover:underline">Editar</button>
+                  <button (click)="desactivarHorario(h.id)" class="text-xs text-red-600 hover:underline">Eliminar</button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  }
+</div>
